@@ -1,420 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GATE Practice Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1976d2;
+            --success: #4CAF50;
+            --error: #e53935;
+            --warning: #ff9800;
+        }
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(120deg, #1f4037, #99f2c8);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
 
-<title>Quiz App</title>
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 900px; /* Responsive max-width */
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
 
-<style>
+        .timer {
+            font-size: 20px;
+            color: red;
+            font-weight: bold;
+            text-align: right;
+            margin-bottom: 15px;
+        }
 
-body{
-font-family:Arial;
-background:#e8f5e9;
-margin:0;
-padding:20px;
-}
+        /* Layout changes to vertical on mobile */
+        .layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-.container{
-background:white;
-max-width:900px;
-margin:auto;
-padding:20px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.2);
-}
+        @media (min-width: 768px) {
+            .layout { flex-direction: row-reverse; }
+            .palette { width: 250px; }
+        }
 
-.timer{
-font-size:18px;
-color:red;
-margin-bottom:10px;
-}
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+        }
 
-.palette{
-display:flex;
-flex-wrap:wrap;
-gap:5px;
-margin-bottom:15px;
-}
+        .qbox {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-.qbox{
-width:35px;
-height:35px;
-background:#ccc;
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-border-radius:5px;
-}
+        .answered { background: var(--success); color: white; }
+        .review { background: var(--warning); color: white; }
+        .current { border: 3px solid #000; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+        .correct { background: var(--success); color: white; }
+        .wrong { background: var(--error); color: white; }
 
-.answered{background:green;color:white}
-.review{background:orange;color:white}
-.current{border:3px solid black}
+        .question-area { flex: 1; }
 
-.option{
-background:#f1f1f1;
-padding:10px;
-margin:8px 0;
-border-radius:6px;
-cursor:pointer;
-display:block;
-}
+        .option {
+            display: block;
+            background: #f3f3f3;
+            padding: 15px; /* Bigger tap target for mobile */
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 2px solid transparent;
+        }
 
-.buttons{
-margin-top:10px;
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
+        .option:active { background: #e0e0e0; }
 
-button{
-padding:8px 14px;
-border:none;
-background:#1976d2;
-color:white;
-border-radius:5px;
-cursor:pointer;
-}
+        input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
 
-.summary{
-display:flex;
-gap:10px;
-margin-top:20px;
-flex-wrap:wrap;
-}
+        .buttons {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
 
-.card{
-background:#eee;
-padding:15px;
-flex:1;
-text-align:center;
-border-radius:6px;
-}
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
 
-.correct{background:green;color:white}
-.wrong{background:red;color:white}
+        .btn-submit { background: #333; grid-column: span 2; }
 
-.explanation{
-margin-top:20px;
-background:#f7f7f7;
-padding:15px;
-border-radius:8px;
-}
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-</style>
+        .card { background: #f4f4f4; padding: 15px; border-radius: 8px; text-align: center; }
+
+        .progress-container {
+            width: 100%;
+            background: #ddd;
+            height: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar { height: 100%; background: var(--success); text-align: center; line-height: 25px; color: white; transition: 0.5s; }
+
+        .explanation {
+            margin-top: 15px;
+            background: #f7f7f7;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .correct-option { color: var(--success); font-weight: bold; }
+        .wrong-option { color: var(--error); font-weight: bold; }
+
+    </style>
 </head>
-
 <body>
 
 <div class="container">
+    <div id="uploadArea">
+        <h2>GATE Practice Quiz</h2>
+        <p>Select your CSV file to begin.</p>
+        <input type="file" id="csvFile" accept=".csv" style="margin-bottom: 20px; width: 100%;">
+        <button onclick="loadQuiz()" style="width: 100%;">Start Quiz</button>
+    </div>
 
-<h2>Upload Quiz CSV</h2>
+    <div id="quizArea" style="display:none">
+        <div class="timer" id="timer">00:00</div>
+        <div class="layout">
+            <div class="palette" id="palette"></div>
+            <div class="question-area">
+                <h3 id="question"></h3>
+                <div id="options"></div>
+                <div class="buttons">
+                    <button onclick="prevQuestion()">Previous</button>
+                    <button onclick="nextQuestion()">Next</button>
+                    <button onclick="markReview()" style="background: var(--warning);">Review</button>
+                    <button onclick="submitQuiz()" class="btn-submit">Submit Exam</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<input type="file" id="csvFile" accept=".csv">
-
-<button onclick="loadQuiz()">Start Quiz</button>
-
-<div id="quizArea" style="display:none">
-
-<div class="timer" id="timer"></div>
-
-<div class="palette" id="palette"></div>
-
-<h3 id="question"></h3>
-
-<div id="options"></div>
-
-<div class="buttons">
-
-<button onclick="prevQuestion()">Prev</button>
-<button onclick="markReview()">Mark Review</button>
-<button onclick="nextQuestion()">Next</button>
-<button onclick="submitQuiz()">Submit</button>
-
-</div>
-
-</div>
-
-<div id="result"></div>
-
+    <div id="result"></div>
 </div>
 
 <script>
-
-let quizData=[]
-let answers=[]
-let review=[]
-let currentQuestion=0
-let timer
-let timeLeft=0
-
-function loadQuiz(){
-
-quizData=[]
-answers=[]
-review=[]
-
-let input=document.getElementById("csvFile")
-
-if(input.files.length===0){
-alert("Please upload CSV file")
-return
-}
-
-let file=input.files[0]
-
-let reader=new FileReader()
-
-reader.onload=function(e){
-
-let lines=e.target.result.trim().split(/\r?\n/)
-
-for(let i=1;i<lines.length;i++){
-
-let d=lines[i].split(",")
-
-if(d.length>=6){
-
-quizData.push({
-q:d[0],
-o:[d[1],d[2],d[3],d[4]],
-a:d[5].trim(),
-exp:d.slice(6).join(",")
-})
-
-}
-
-}
-
-if(quizData.length==0){
-alert("CSV not loaded correctly")
-return
-}
-
-startQuiz()
-
-}
-
-reader.readAsText(file)
-
-}
-
-function startQuiz(){
-
-document.getElementById("quizArea").style.display="block"
-
-timeLeft=quizData.length*60
-
-createPalette()
-
-startTimer()
-
-showQuestion()
-
-}
-
-function startTimer(){
-
-timer=setInterval(()=>{
-
-timeLeft--
-
-let m=Math.floor(timeLeft/60)
-let s=timeLeft%60
-
-if(s<10)s="0"+s
-
-document.getElementById("timer").innerHTML="Time: "+m+":"+s
-
-if(timeLeft<=0){
-clearInterval(timer)
-showResult()
-}
-
-},1000)
-
-}
-
-function createPalette(){
-
-let html=""
-
-for(let i=0;i<quizData.length;i++){
-html+=`<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i+1}</div>`
-}
-
-document.getElementById("palette").innerHTML=html
-
-}
-
-function showQuestion(){
-
-let q=quizData[currentQuestion]
-
-document.getElementById("question").innerHTML="Q"+(currentQuestion+1)+": "+q.q
-
-let html=""
-
-q.o.forEach(opt=>{
-
-let checked=answers[currentQuestion]==opt?"checked":""
-
-html+=`
-<label class="option">
-<input type="radio" name="opt" value="${opt}" ${checked}>
-${opt}
-</label>
-`
-
-})
-
-document.getElementById("options").innerHTML=html
-
-updatePalette()
-
-}
-
-function saveAnswer(){
-
-let s=document.querySelector('input[name="opt"]:checked')
-
-if(s){
-answers[currentQuestion]=s.value
-}
-
-}
-
-function nextQuestion(){
-
-saveAnswer()
-
-if(currentQuestion<quizData.length-1){
-currentQuestion++
-showQuestion()
-}
-
-}
-
-function prevQuestion(){
-
-saveAnswer()
-
-if(currentQuestion>0){
-currentQuestion--
-showQuestion()
-}
-
-}
-
-function markReview(){
-
-review[currentQuestion]=true
-updatePalette()
-
-}
-
-function gotoQ(i){
-
-saveAnswer()
-currentQuestion=i
-showQuestion()
-
-}
-
-function updatePalette(){
-
-for(let i=0;i<quizData.length;i++){
-
-let b=document.getElementById("box"+i)
-
-b.classList.remove("answered","review","current")
-
-if(answers[i])b.classList.add("answered")
-
-if(review[i])b.classList.add("review")
-
-if(i===currentQuestion)b.classList.add("current")
-
-}
-
-}
-
-function submitQuiz(){
-
-saveAnswer()
-clearInterval(timer)
-showResult()
-
-}
-
-function showResult(){
-
-document.getElementById("quizArea").style.display="none"
-
-let correct=0
-
-quizData.forEach((q,i)=>{
-if(answers[i]===q.a)correct++
-})
-
-let wrong=(answers.filter(a=>a).length)-correct
-
-let html=`
-
-<h2>Result</h2>
-
-<div class="summary">
-
-<div class="card">Total<br>${quizData.length}</div>
-<div class="card">Correct<br>${correct}</div>
-<div class="card">Wrong<br>${wrong}</div>
-
-</div>
-
-<h3>Review</h3>
-
-<div class="palette">
-`
-
-quizData.forEach((q,i)=>{
-
-let cls=answers[i]===q.a?"correct":"wrong"
-
-html+=`<div class="qbox ${cls}" onclick="showExplanation(${i})">${i+1}</div>`
-
-})
-
-html+=`</div><div id="explanation"></div>`
-
-document.getElementById("result").innerHTML=html
-
-}
-
-function showExplanation(i){
-
-let q=quizData[i]
-
-let html=`
-
-<div class="explanation">
-
-<b>Question:</b> ${q.q}<br><br>
-
-<b>Your Answer:</b> ${answers[i] || "Not Answered"}<br>
-
-<b>Correct Answer:</b> ${q.a}<br><br>
-
-<b>Explanation:</b> ${q.exp || "No explanation"}
-
-</div>
-`
-
-document.getElementById("explanation").innerHTML=html
-
-}
-
+    let quizData = [];
+    let currentQuestion = 0;
+    let answers = [];
+    let review = [];
+    let timer;
+    let timeLeft = 0;
+
+    function loadQuiz() {
+        let file = document.getElementById("csvFile").files[0];
+        if (!file) { alert("Please upload a CSV file"); return; }
+
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let lines = e.target.result.split(/\r?\n/);
+            quizData = [];
+            for (let i = 1; i < lines.length; i++) {
+                let d = lines[i].split(",");
+                if (d.length >= 6) {
+                    quizData.push({
+                        q: d[0].replace(/"/g, ""),
+                        o: [d[1], d[2], d[3], d[4]].map(s => s.replace(/"/g, "")),
+                        a: d[5].trim().replace(/"/g, "")
+                    });
+                }
+            }
+            if(quizData.length > 0) startQuiz();
+            else alert("Invalid CSV format");
+        };
+        reader.readAsText(file);
+    }
+
+    function startQuiz() {
+        document.getElementById("uploadArea").style.display = "none";
+        document.getElementById("quizArea").style.display = "block";
+        timeLeft = quizData.length * 60;
+        createPalette();
+        startTimer();
+        showQuestion();
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeLeft--;
+            let m = Math.floor(timeLeft / 60);
+            let s = timeLeft % 60;
+            document.getElementById("timer").innerHTML = `Time: ${m}:${s < 10 ? '0' + s : s}`;
+            if (timeLeft <= 0) { clearInterval(timer); submitQuiz(); }
+        }, 1000);
+    }
+
+    function createPalette() {
+        let html = "";
+        for (let i = 0; i < quizData.length; i++) {
+            html += `<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i + 1}</div>`;
+        }
+        document.getElementById("palette").innerHTML = html;
+    }
+
+    function showQuestion() {
+        let q = quizData[currentQuestion];
+        document.getElementById("question").innerHTML = `Q${currentQuestion + 1}: ${q.q}`;
+        let html = "";
+        q.o.forEach(opt => {
+            let isChecked = answers[currentQuestion] === opt ? "checked" : "";
+            html += `
+                <label class="option">
+                    <input type="radio" name="opt" value="${opt}" ${isChecked} onchange="saveAnswer()">
+                    ${opt}
+                </label>`;
+        });
+        document.getElementById("options").innerHTML = html;
+        updatePalette();
+    }
+
+    function saveAnswer() {
+        let s = document.querySelector('input[name="opt"]:checked');
+        if (s) {
+            answers[currentQuestion] = s.value;
+            updatePalette();
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestion < quizData.length - 1) {
+            currentQuestion++;
+            showQuestion();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            currentQuestion--;
+            showQuestion();
+        }
+    }
+
+    function markReview() {
+        review[currentQuestion] = !review[currentQuestion];
+        updatePalette();
+    }
+
+    function gotoQ(i) {
+        currentQuestion = i;
+        showQuestion();
+    }
+
+    function updatePalette() {
+        for (let i = 0; i < quizData.length; i++) {
+            let b = document.getElementById("box" + i);
+            if(!b) continue;
+            b.classList.remove("answered", "review", "current");
+            if (answers[i]) b.classList.add("answered");
+            if (review[i]) b.classList.add("review");
+            if (i === currentQuestion) b.classList.add("current");
+        }
+    }
+
+    function submitQuiz() {
+        if(!confirm("Are you sure you want to submit?")) return;
+        clearInterval(timer);
+        showResult();
+    }
+
+    function showResult() {
+        document.getElementById("quizArea").style.display = "none";
+        let correct = 0;
+        quizData.forEach((q, i) => { if (answers[i] === q.a) correct++; });
+        let attempted = answers.filter(a => a).length;
+        let percent = Math.round((correct / quizData.length) * 100);
+
+        let html = `
+            <h2>Result Summary</h2>
+            <div class="summary">
+                <div class="card">Total<br>${quizData.length}</div>
+                <div class="card">Correct<br>${correct}</div>
+                <div class="card">Wrong<br>${attempted - correct}</div>
+            </div>
+            <div class="progress-container"><div class="progress-bar" style="width:${percent}%">${percent}%</div></div>
+            <h3>Review Questions</h3>
+            <div class="layout">
+                <div class="palette">`;
+        
+        quizData.forEach((q, i) => {
+            let cls = answers[i] === q.a ? "correct" : "wrong";
+            html += `<div class="qbox ${cls}" onclick="showExplanation(${i})">${i + 1}</div>`;
+        });
+
+        html += `</div><div class="explanation" id="explanationBox">Tap a number to see details</div></div>`;
+        document.getElementById("result").innerHTML = html;
+    }
+
+    function showExplanation(i) {
+        let q = quizData[i];
+        let html = `
+            <h4>Question ${i + 1}</h4>
+            <p>${q.q}</p>
+            <p><b>Your Answer:</b> <span class="${answers[i] === q.a ? 'correct-option' : 'wrong-option'}">${answers[i] || "Not Answered"}</span></p>
+            <p><b>Correct Answer:</b> <span class="correct-option">${q.a}</span></p>
+        `;
+        document.getElementById("explanationBox").innerHTML = html;
+    }
 </script>
 
 </body>
