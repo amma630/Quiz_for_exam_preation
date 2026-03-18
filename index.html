@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSV Quiz</title>
+<title>CSV Quiz System</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -16,7 +16,7 @@ padding:20px;
 }
 
 .container{
-max-width:800px;
+max-width:900px;
 margin:auto;
 background:white;
 padding:20px;
@@ -39,19 +39,21 @@ background:#ddd;
 button{
 padding:10px 15px;
 margin-top:10px;
+margin-right:5px;
 }
 
 .correct{color:green;font-weight:bold;}
 .wrong{color:red;font-weight:bold;}
 
 </style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-<h2>Upload CSV Quiz</h2>
+<h2>Upload Quiz CSV</h2>
 
 <input type="file" id="csvFile">
 <button onclick="loadQuiz()">Start Quiz</button>
@@ -88,13 +90,12 @@ return
 }
 
 Papa.parse(file,{
-
 header:true,
 skipEmptyLines:true,
 
 complete:function(results){
 
-quizData=results.data
+quizData = results.data
 
 document.getElementById("quizArea").style.display="block"
 
@@ -112,9 +113,9 @@ let q=quizData[current]
 
 document.getElementById("question").innerHTML="Q"+(current+1)+": "+q.Question
 
-let html=""
-
 let options=[q.Option1,q.Option2,q.Option3,q.Option4]
+
+let html=""
 
 options.forEach(opt=>{
 
@@ -172,13 +173,10 @@ save()
 let correct=0
 
 quizData.forEach((q,i)=>{
-
 if(answers[i]==q.Answer) correct++
-
 })
 
 let html="<h2>Result</h2>"
-
 html+="Correct: "+correct+" / "+quizData.length+"<br><br>"
 
 quizData.forEach((q,i)=>{
@@ -192,6 +190,7 @@ html+="Explanation: "+q.Explanation+"<br>"
 })
 
 document.getElementById("quizArea").style.display="none"
+
 document.getElementById("result").innerHTML=html
 
 }
