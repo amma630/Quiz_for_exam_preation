@@ -28,6 +28,16 @@ border-radius:12px;
 box-shadow:0 10px 25px rgba(0,0,0,0.3);
 }
 
+.uploadBtn{
+background:#4CAF50;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+display:inline-block;
+margin-right:10px;
+}
+
 .timer{
 font-size:18px;
 color:red;
@@ -79,10 +89,6 @@ border-radius:6px;
 cursor:pointer;
 }
 
-.option:hover{
-background:#e0e0e0;
-}
-
 .buttons{
 margin-top:10px;
 display:flex;
@@ -97,11 +103,6 @@ border:none;
 padding:10px 16px;
 border-radius:6px;
 cursor:pointer;
-font-size:14px;
-}
-
-button:hover{
-background:#0d47a1;
 }
 
 .summary{
@@ -162,8 +163,6 @@ color:red;
 font-weight:bold;
 }
 
-/* Mobile */
-
 @media(max-width:768px){
 
 .layout{
@@ -186,7 +185,9 @@ justify-content:center;
 
 <h2>Upload Quiz CSV</h2>
 
-<input type="file" id="csvFile" accept=".csv">
+<label for="csvFile" class="uploadBtn">Upload CSV</label>
+<input type="file" id="csvFile" accept=".csv,text/csv" style="display:none">
+
 <button onclick="loadQuiz()">Start Quiz</button>
 
 <div id="quizArea" style="display:none">
@@ -240,7 +241,7 @@ review=[]
 let file=document.getElementById("csvFile").files[0]
 
 if(!file){
-alert("Upload CSV file")
+alert("Please upload CSV file")
 return
 }
 
