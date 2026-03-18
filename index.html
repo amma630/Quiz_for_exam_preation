@@ -1,22 +1,19 @@
-
+```html
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>CSV Quiz App</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-<!-- CSV Parser -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 
 body{
-font-family:'Poppins',sans-serif;
-background:linear-gradient(120deg,#1f4037,#99f2c8);
-margin:0;
+font-family:Arial;
+background:#f2f2f2;
 padding:20px;
 }
 
@@ -24,57 +21,45 @@ padding:20px;
 background:white;
 max-width:900px;
 margin:auto;
-padding:25px;
-border-radius:10px;
-box-shadow:0 10px 20px rgba(0,0,0,0.2);
-}
-
-button{
-background:#1976d2;
-color:white;
-border:none;
-padding:10px 16px;
-border-radius:6px;
-cursor:pointer;
-margin-top:10px;
+padding:20px;
+border-radius:8px;
 }
 
 .option{
 display:block;
-background:#f1f1f1;
+background:#eee;
 padding:10px;
 margin:8px 0;
-border-radius:6px;
+border-radius:5px;
 cursor:pointer;
-}
-
-.timer{
-color:red;
-font-weight:bold;
-margin-bottom:10px;
 }
 
 .palette{
 display:flex;
 flex-wrap:wrap;
-gap:8px;
-margin-bottom:15px;
+gap:6px;
+margin:10px 0;
 }
 
 .qbox{
 width:35px;
 height:35px;
+background:#ccc;
 display:flex;
 align-items:center;
 justify-content:center;
-background:#ccc;
-border-radius:5px;
 cursor:pointer;
-font-size:14px;
+border-radius:4px;
 }
 
-.answered{background:#4CAF50;color:white;}
-.current{border:3px solid black;}
+.answered{
+background:green;
+color:white;
+}
+
+.current{
+border:3px solid black;
+}
 
 </style>
 </head>
@@ -86,21 +71,22 @@ font-size:14px;
 <h2>Upload Quiz CSV</h2>
 
 <input type="file" id="csvFile">
-<br>
+<br><br>
+
 <button onclick="loadQuiz()">Start Quiz</button>
 
 <div id="quizArea" style="display:none">
 
-<div class="timer" id="timer"></div>
-
-<div class="palette" id="palette"></div>
+<div id="palette" class="palette"></div>
 
 <h3 id="question"></h3>
 
 <div id="options"></div>
 
-<button onclick="prevQ()">Previous</button>
-<button onclick="nextQ()">Next</button>
+<br>
+
+<button onclick="prev()">Previous</button>
+<button onclick="next()">Next</button>
 <button onclick="submitQuiz()">Submit</button>
 
 </div>
@@ -111,11 +97,9 @@ font-size:14px;
 
 <script>
 
-let quizData=[]
+let quiz=[]
 let answers=[]
 let current=0
-let timer
-let timeLeft
 
 function loadQuiz(){
 
@@ -127,25 +111,33 @@ return
 }
 
 Papa.parse(file,{
-header:true,
+
 skipEmptyLines:true,
 
-complete:function(results){
+complete:function(res){
 
-quizData=[]
+let data=res.data
 
-results.data.forEach(row=>{
+quiz=[]
 
-quizData.push({
-q:row.Question,
-o:[row.Option1,row.Option2,row.Option3,row.Option4],
-a:row.Answer,
-exp:row.Explanation
+for(let i=1;i<data.length;i++){
+
+let row=data[i]
+
+if(row.length>=7){
+
+quiz.push({
+q:row[0],
+o:[row[1],row[2],row[3],row[4]],
+a:row[5],
+e:row[6]
 })
 
-})
+}
 
-if(quizData.length==0){
+}
+
+if(quiz.length==0){
 alert("CSV format incorrect")
 return
 }
@@ -162,35 +154,9 @@ function startQuiz(){
 
 document.getElementById("quizArea").style.display="block"
 
-timeLeft=quizData.length*60
-
 createPalette()
 
-startTimer()
-
 showQuestion()
-
-}
-
-function startTimer(){
-
-timer=setInterval(()=>{
-
-timeLeft--
-
-let m=Math.floor(timeLeft/60)
-let s=timeLeft%60
-
-if(s<10) s="0"+s
-
-document.getElementById("timer").innerHTML="Time: "+m+":"+s
-
-if(timeLeft<=0){
-clearInterval(timer)
-showResult()
-}
-
-},1000)
 
 }
 
@@ -198,8 +164,8 @@ function createPalette(){
 
 let html=""
 
-for(let i=0;i<quizData.length;i++){
-html+=`<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i+1}</div>`
+for(let i=0;i<quiz.length;i++){
+html+=`<div class="qbox" id="b${i}" onclick="gotoQ(${i})">${i+1}</div>`
 }
 
 document.getElementById("palette").innerHTML=html
@@ -208,9 +174,9 @@ document.getElementById("palette").innerHTML=html
 
 function showQuestion(){
 
-let q=quizData[current]
+let q=quiz[current]
 
-document.getElementById("question").innerHTML="Q"+(current+1)+": "+q.q
+document.getElementById("question").innerText=(current+1)+". "+q.q
 
 let html=""
 
@@ -220,7 +186,7 @@ let checked=answers[current]==opt?"checked":""
 
 html+=`
 <label class="option">
-<input type="radio" name="opt" value="${opt}" ${checked} onclick="saveAnswer()">
+<input type="radio" name="opt" value="${opt}" ${checked} onclick="save()">
 ${opt}
 </label>
 `
@@ -233,7 +199,7 @@ updatePalette()
 
 }
 
-function saveAnswer(){
+function save(){
 
 let s=document.querySelector('input[name="opt"]:checked')
 
@@ -241,20 +207,20 @@ if(s) answers[current]=s.value
 
 }
 
-function nextQ(){
+function next(){
 
-saveAnswer()
+save()
 
-if(current<quizData.length-1){
+if(current<quiz.length-1){
 current++
 showQuestion()
 }
 
 }
 
-function prevQ(){
+function prev(){
 
-saveAnswer()
+save()
 
 if(current>0){
 current--
@@ -265,17 +231,19 @@ showQuestion()
 
 function gotoQ(i){
 
-saveAnswer()
+save()
+
 current=i
+
 showQuestion()
 
 }
 
 function updatePalette(){
 
-for(let i=0;i<quizData.length;i++){
+for(let i=0;i<quiz.length;i++){
 
-let b=document.getElementById("box"+i)
+let b=document.getElementById("b"+i)
 
 b.classList.remove("answered","current")
 
@@ -289,36 +257,30 @@ if(i==current) b.classList.add("current")
 
 function submitQuiz(){
 
-saveAnswer()
-clearInterval(timer)
-showResult()
-
-}
-
-function showResult(){
-
-document.getElementById("quizArea").style.display="none"
+save()
 
 let correct=0
 
-quizData.forEach((q,i)=>{
+quiz.forEach((q,i)=>{
 if(answers[i]==q.a) correct++
 })
 
 let html="<h2>Result</h2>"
-html+="Score: "+correct+" / "+quizData.length+"<br><br>"
+html+="Score: "+correct+" / "+quiz.length+"<br><br>"
 
-quizData.forEach((q,i)=>{
+quiz.forEach((q,i)=>{
 
 html+="<hr>"
 html+="<b>"+q.q+"</b><br>"
-html+="Your Answer: "+(answers[i]||"Not Answered")+"<br>"
-html+="Correct: "+q.a+"<br>"
-html+="Explanation: "+q.exp+"<br>"
+html+="Your Answer: "+(answers[i]||"Not answered")+"<br>"
+html+="Correct Answer: "+q.a+"<br>"
+html+="Explanation: "+q.e+"<br>"
 
 })
 
 document.getElementById("result").innerHTML=html
+
+document.getElementById("quizArea").style.display="none"
 
 }
 
@@ -326,4 +288,4 @@ document.getElementById("result").innerHTML=html
 
 </body>
 </html>
-
+```
