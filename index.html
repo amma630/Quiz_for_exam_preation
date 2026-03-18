@@ -241,63 +241,91 @@ h3{ font-size:16px; }
 <script>
 let quizData=[], currentQuestion=0, answers=[], review=[], timer, timeLeft=0;
 
+// Fix CSV loading for Samsung/Android
 function loadQuiz(){
-quizData=[], answers=[], review=[], currentQuestion=0;
-let file=document.getElementById("csvFile").files[0];
-if(!file){ alert("Upload CSV file"); return; }
+    quizData=[], answers=[], review=[], currentQuestion=0;
+    let file=document.getElementById("csvFile").files[0];
+    if(!file){ alert("Upload CSV file"); return; }
 
-let reader=new FileReader();
-reader.onload=function(e){
-let lines=e.target.result.trim().split(/\r?\n/);
-for(let i=1;i<lines.length;i++){
-let d=lines[i].split(",").map(x=>x.trim());
-if(d.length>=6){
-quizData.push({ q:d[0], o:[d[1],d[2],d[3],d[4]], a:d[5] });
-}
-}
-startQuiz();
-}
-reader.readAsText(file);
+    let reader=new FileReader();
+    reader.onload=function(e){
+        let content = e.target.result;
+
+        // Remove BOM if present
+        content = content.replace(/^\uFEFF/, '');
+
+        // Split lines (handles \r\n, \n, \r)
+        let lines = content.split(/\r\n|\n|\r/);
+
+        // Remove empty lines
+        lines = lines.filter(line => line.trim() !== "");
+
+        if(lines.length <= 1){ alert("CSV file seems empty or invalid."); return; }
+
+        quizData = [];
+
+        for(let i=1; i<lines.length; i++){ // skip header
+            let d = lines[i].split(",").map(x=>x.trim());
+            if(d.length >= 6){
+                quizData.push({
+                    q: d[0],
+                    o: [d[1], d[2], d[3], d[4]],
+                    a: d[5]
+                });
+            }
+        }
+
+        if(quizData.length === 0){
+            alert("No valid questions found in CSV.");
+            return;
+        }
+
+        startQuiz();
+    }
+    reader.readAsText(file);
 }
 
 function startQuiz(){
-document.getElementById("quizArea").style.display="block";
-timeLeft=quizData.length*60;
-createPalette();
-startTimer();
-showQuestion();
+    document.getElementById("quizArea").style.display="block";
+    timeLeft=quizData.length*60;
+    createPalette();
+    startTimer();
+    showQuestion();
 }
 
 function startTimer(){
-timer=setInterval(()=>{
-timeLeft--;
-let m=Math.floor(timeLeft/60), s=timeLeft%60;
-if(s<10) s="0"+s;
-document.getElementById("timer").innerHTML="Time: "+m+":"+s;
-if(timeLeft<=0){ clearInterval(timer); showResult(); }
-},1000);
+    timer=setInterval(()=>{
+        timeLeft--;
+        let m=Math.floor(timeLeft/60), s=timeLeft%60;
+        if(s<10) s="0"+s;
+        document.getElementById("timer").innerHTML="Time: "+m+":"+s;
+        if(timeLeft<=0){ clearInterval(timer); showResult(); }
+    },1000);
 }
 
 function createPalette(){
-let html=""; for(let i=0;i<quizData.length;i++){
-html+=`<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i+1}</div>`; }
-document.getElementById("palette").innerHTML=html;
+    let html="";
+    for(let i=0;i<quizData.length;i++){
+        html+=`<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i+1}</div>`;
+    }
+    document.getElementById("palette").innerHTML=html;
 }
 
 function showQuestion(){
-let q=quizData[currentQuestion];
-document.getElementById("question").innerHTML="Q"+(currentQuestion+1)+": "+q.q;
-let html="";
-q.o.forEach(opt=>{
-let checked=answers[currentQuestion]==opt?"checked":"";
-html+=`<label class="option"><input type="radio" name="opt" value="${opt}" ${checked}>${opt}</label>`; });
-document.getElementById("options").innerHTML=html;
-updatePalette();
+    let q=quizData[currentQuestion];
+    document.getElementById("question").innerHTML="Q"+(currentQuestion+1)+": "+q.q;
+    let html="";
+    q.o.forEach(opt=>{
+        let checked=answers[currentQuestion]==opt?"checked":"";
+        html+=`<label class="option"><input type="radio" name="opt" value="${opt}" ${checked}>${opt}</label>`;
+    });
+    document.getElementById("options").innerHTML=html;
+    updatePalette();
 }
 
 function saveAnswer(){
-let s=document.querySelector('input[name="opt"]:checked');
-if(s) answers[currentQuestion]=s.value;
+    let s=document.querySelector('input[name="opt"]:checked');
+    if(s) answers[currentQuestion]=s.value;
 }
 
 function nextQuestion(){ saveAnswer(); if(currentQuestion<quizData.length-1){ currentQuestion++; showQuestion(); } }
@@ -306,58 +334,58 @@ function markReview(){ review[currentQuestion]=true; updatePalette(); }
 function gotoQ(i){ saveAnswer(); currentQuestion=i; showQuestion(); }
 
 function updatePalette(){
-for(let i=0;i<quizData.length;i++){
-let b=document.getElementById("box"+i);
-b.classList.remove("answered","review","current");
-if(answers[i]) b.classList.add("answered");
-if(review[i]) b.classList.add("review");
-if(i===currentQuestion) b.classList.add("current");
-}
+    for(let i=0;i<quizData.length;i++){
+        let b=document.getElementById("box"+i);
+        b.classList.remove("answered","review","current");
+        if(answers[i]) b.classList.add("answered");
+        if(review[i]) b.classList.add("review");
+        if(i===currentQuestion) b.classList.add("current");
+    }
 }
 
 function submitQuiz(){ saveAnswer(); clearInterval(timer); showResult(); }
 
 function showResult(){
-document.getElementById("quizArea").style.display="none";
-let correct=0;
-quizData.forEach((q,i)=>{ if(answers[i]===q.a) correct++; });
-let wrong=(answers.filter(a=>a).length)-correct;
-let percent=Math.round((correct/quizData.length)*100);
+    document.getElementById("quizArea").style.display="none";
+    let correct=0;
+    quizData.forEach((q,i)=>{ if(answers[i]===q.a) correct++; });
+    let wrong=(answers.filter(a=>a).length)-correct;
+    let percent=Math.round((correct/quizData.length)*100);
 
-let html=`<h2>Exam Summary</h2>
-<div class="summary">
-<div class="card">Total Questions<br>${quizData.length}</div>
-<div class="card">Correct<br>${correct}</div>
-<div class="card">Wrong<br>${wrong}</div>
-</div>
-<div class="progress-container">
-<div class="progress-bar" style="width:${percent}%">${percent}%</div>
-</div>
-<h3>Question Review</h3>
-<div class="review-section">
-<div class="palette">`;
+    let html=`<h2>Exam Summary</h2>
+    <div class="summary">
+    <div class="card">Total Questions<br>${quizData.length}</div>
+    <div class="card">Correct<br>${correct}</div>
+    <div class="card">Wrong<br>${wrong}</div>
+    </div>
+    <div class="progress-container">
+    <div class="progress-bar" style="width:${percent}%">${percent}%</div>
+    </div>
+    <h3>Question Review</h3>
+    <div class="review-section">
+    <div class="palette">`;
 
-quizData.forEach((q,i)=>{
-let cls="wrong"; if(answers[i]===q.a) cls="correct";
-html+=`<div class="qbox ${cls}" onclick="showExplanation(${i})">${i+1}</div>`;
-});
+    quizData.forEach((q,i)=>{
+        let cls="wrong"; if(answers[i]===q.a) cls="correct";
+        html+=`<div class="qbox ${cls}" onclick="showExplanation(${i})">${i+1}</div>`;
+    });
 
-html+=`</div>
-<div class="explanation" id="explanationBox">Click a question number to see explanation</div>
-</div>`;
-document.getElementById("result").innerHTML=html;
+    html+=`</div>
+    <div class="explanation" id="explanationBox">Click a question number to see explanation</div>
+    </div>`;
+    document.getElementById("result").innerHTML=html;
 }
 
 function showExplanation(i){
-let q=quizData[i];
-let html=`<h3>Question ${i+1}</h3><p><b>${q.q}</b></p><ul>`;
-q.o.forEach(opt=>{
-let cls=""; if(opt===q.a) cls="correct-option"; else if(opt===answers[i]) cls="wrong-option";
-html+=`<li class="${cls}">${opt}</li>`;
-});
-html+=`</ul><p><b>Your Answer:</b> ${answers[i] || "Not Answered"}</p>
-<p><b>Correct Answer:</b> ${q.a}</p>`;
-document.getElementById("explanationBox").innerHTML=html;
+    let q=quizData[i];
+    let html=`<h3>Question ${i+1}</h3><p><b>${q.q}</b></p><ul>`;
+    q.o.forEach(opt=>{
+        let cls=""; if(opt===q.a) cls="correct-option"; else if(opt===answers[i]) cls="wrong-option";
+        html+=`<li class="${cls}">${opt}</li>`;
+    });
+    html+=`</ul><p><b>Your Answer:</b> ${answers[i] || "Not Answered"}</p>
+    <p><b>Correct Answer:</b> ${q.a}</p>`;
+    document.getElementById("explanationBox").innerHTML=html;
 }
 </script>
 
