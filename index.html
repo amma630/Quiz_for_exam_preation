@@ -3,190 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GATE Practice Quiz</title>
+    <title>GATE Quiz Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        :root { --primary: #1976d2; --success: #2e7d32; --error: #d32f2f; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(120deg, #1f4037, #99f2c8);
-            margin: 0; padding: 10px;
-            display: flex; justify-content: center; min-height: 100vh;
-        }
-        .container {
-            background: white;
-            width: 100%; /* FIX 2: Responsive width */
-            max-width: 800px;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            margin-top: 10px;
-        }
-        .timer { font-size: 20px; color: red; font-weight: bold; text-align: right; margin-bottom: 10px; }
-        .layout { display: flex; flex-direction: column; gap: 15px; } /* FIX 3: Stack on mobile */
-        @media (min-width: 768px) { .layout { flex-direction: row; } .palette { width: 220px; } }
-        .palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; background: #f4f4f4; padding: 10px; border-radius: 8px; }
-        .qbox { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; background: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .answered { background: #4CAF50 !important; color: white; }
-        .review { background: #ff9800 !important; color: white; }
-        .current { border: 3px solid black; transform: scale(1.05); }
-        .correct { background: #4CAF50; color: white; }
-        .wrong { background: #e53935; color: white; }
-        .question-area { flex: 1; }
-        .option {
-            display: block; background: #f3f3f3; padding: 16px; margin: 10px 0;
-            border-radius: 8px; cursor: pointer; border: 1px solid #ddd;
-        }
-        .option:active { background: #e0e0e0; }
-        .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        button { background: #1976d2; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-        .btn-full { grid-column: span 2; background: #333; }
-        .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .card { background: #f4f4f4; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; }
-        .explanation { background: #fff9c4; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-top: 15px; }
-        .correct-option { color: green; font-weight: bold; }
-        .wrong-option { color: red; font-weight: bold; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); align-self: flex-start; }
+        
+        /* Mobile Upload Styling */
+        .upload-box { border: 2px dashed var(--primary); padding: 30px; text-align: center; border-radius: 12px; background: #e3f2fd; cursor: pointer; margin-bottom: 15px; }
+        input[type="file"] { display: none; }
+        textarea { width: 100%; height: 100px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; padding: 10px; font-size: 12px; }
+
+        /* Quiz UI */
+        .timer { font-size: 22px; color: var(--error); font-weight: bold; text-align: center; margin-bottom: 10px; }
+        .palette { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 20px; max-height: 120px; overflow-y: auto; padding: 5px; background: #f8f9fa; border-radius: 8px; }
+        .p-item { aspect-ratio: 1/1; background: #fff; border: 1px solid #ccc; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .p-item.active { border: 2px solid #000; transform: scale(1.1); }
+        .p-item.done { background: var(--success); color: white; border: none; }
+        
+        .q-text { font-size: 17px; font-weight: 600; margin-bottom: 15px; line-height: 1.4; color: #333; }
+        .option { display: block; background: #f1f3f5; padding: 16px; margin: 10px 0; border-radius: 10px; border: 1px solid #dee2e6; font-size: 15px; cursor: pointer; }
+        .option:active { background: #e9ecef; border-color: var(--primary); }
+
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; background: var(--primary); color: white; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-sec { background: #6c757d; }
+        .btn-finish { background: #212529; }
+
+        .result-card { text-align: center; padding: 20px; }
+        .expl-box { background: #fff9c4; padding: 15px; border-radius: 10px; margin-top: 15px; border-left: 5px solid #fbc02d; font-size: 14px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="uploadScreen">
-        <h2 style="margin-top:0">Supernetting Quiz</h2>
-        <p>Select your 7-column CSV file:</p>
-        <input type="file" id="csvFile" accept=".csv" style="width:100%; margin-bottom:20px;">
-        <button onclick="loadQuiz()" style="width:100%">Start Practice</button>
-    </div>
-
-    <div id="quizArea" style="display:none">
-        <div class="timer" id="timer">Time: 00:00</div>
-        <div class="layout">
-            <div class="palette" id="palette"></div>
-            <div class="question-area">
-                <h3 id="question"></h3>
-                <div id="options"></div>
-                <div class="buttons">
-                    <button onclick="prevQuestion()">Previous</button>
-                    <button onclick="nextQuestion()">Next</button>
-                    <button onclick="markReview()" style="background:#ff9800">Review</button>
-                    <button onclick="submitQuiz()" class="btn-full">Submit Final Exam</button>
-                </div>
-            </div>
+    <div id="setup">
+        <h2 style="margin:0 0 10px 0">GATE Quiz Loader</h2>
+        <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+            <b id="fileStatus">📂 Tap to Upload CSV</b>
+            <input type="file" id="fileInput" accept=".csv, text/csv, text/plain">
         </div>
+        <p style="text-align:center; font-size:12px; color:#666;">-- OR PASTE CSV TEXT BELOW --</p>
+        <textarea id="rawCsv" placeholder="Paste CSV rows here if upload doesn't work..."></textarea>
+        <button class="btn" onclick="initQuiz()">Start Practice</button>
     </div>
 
-    <div id="result"></div>
+    <div id="quiz" style="display:none">
+        <div class="timer" id="timer">00:00</div>
+        <div class="palette" id="palette"></div>
+        <div class="q-text" id="qText"></div>
+        <div id="optionsArea"></div>
+        <div class="btn-nav">
+            <button class="btn btn-sec" onclick="changeQ(-1)">Previous</button>
+            <button class="btn btn-sec" onclick="changeQ(1)">Next</button>
+        </div>
+        <button class="btn btn-finish" onclick="endQuiz()">Submit Exam</button>
+    </div>
+
+    <div id="result" style="display:none" class="result-card">
+        <h2>Exam Result</h2>
+        <h1 id="scoreDisplay" style="color:var(--primary); font-size:48px; margin:10px 0;">0/0</h1>
+        <div id="reviewArea"></div>
+        <button class="btn" onclick="location.reload()">Try Again</button>
+    </div>
 </div>
 
 <script>
-let quizData = [], currentQuestion = 0, answers = [], review = [], timer, timeLeft = 0;
+    let questions = [], current = 0, userAns = [], timer;
 
-function loadQuiz() {
-    const file = document.getElementById("csvFile").files[0];
-    if (!file) return alert("Please select your CSV file.");
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const rows = e.target.result.split(/\r?\n/).filter(line => line.trim() !== "");
-        quizData = rows.slice(1).map(row => {
-            // FIX 4: Handle commas inside quotes for explanations
-            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            return {
-                q: cols[0]?.replace(/"/g, ""),
-                o: [cols[1], cols[2], cols[3], cols[4]].map(o => o?.replace(/"/g, "")),
-                a: cols[5]?.trim().replace(/"/g, ""),
-                e: cols[6]?.replace(/"/g, "") || "No explanation provided."
-            };
-        }).filter(q => q.q);
-
-        if (quizData.length > 0) {
-            document.getElementById("uploadScreen").style.display = "none";
-            document.getElementById("quizArea").style.display = "block";
-            timeLeft = quizData.length * 60;
-            createPalette();
-            startTimer();
-            showQuestion();
-        } else {
-            alert("CSV Error: Ensure you have 7 columns (Question to Explanation)");
-        }
+    // Mobile file selection feedback
+    document.getElementById('fileInput').onchange = function(e) {
+        if(e.target.files[0]) document.getElementById('fileStatus').innerText = "✅ " + e.target.files[0].name;
     };
-    reader.readAsText(file);
-}
 
-function startTimer() {
-    timer = setInterval(() => {
-        timeLeft--;
-        let m = Math.floor(timeLeft/60), s = timeLeft%60;
-        document.getElementById("timer").innerText = `Time: ${m}:${s<10?'0'+s:s}`;
-        if(timeLeft <= 0) submitQuiz();
-    }, 1000);
-}
+    function initQuiz() {
+        const file = document.getElementById('fileInput').files[0];
+        const rawText = document.getElementById('rawCsv').value.trim();
 
-function createPalette() {
-    document.getElementById("palette").innerHTML = quizData.map((_, i) => 
-        `<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i+1}</div>`
-    ).join('');
-}
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => parseData(e.target.result);
+            reader.readAsText(file);
+        } else if (rawText) {
+            parseData(rawText);
+        } else {
+            alert("Please select a file or paste CSV text!");
+        }
+    }
 
-function showQuestion() {
-    const q = quizData[currentQuestion];
-    document.getElementById("question").innerText = `Q${currentQuestion+1}: ${q.q}`;
-    document.getElementById("options").innerHTML = q.o.map(opt => `
-        <label class="option">
-            <input type="radio" name="opt" value="${opt}" ${answers[currentQuestion]===opt?'checked':''} onchange="saveAnswer()"> ${opt}
-        </label>
-    `).join('');
-    updatePalette();
-}
+    function parseData(text) {
+        const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+        questions = lines.slice(1).map(row => {
+            // Robust regex for commas and quotes
+            const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            if(c.length < 6) return null;
+            return {
+                q: c[0].replace(/"/g, "").trim(),
+                o: [c[1], c[2], c[3], c[4]].map(o => o.replace(/"/g, "").trim()),
+                a: c[5].replace(/"/g, "").trim(),
+                e: c[6] ? c[6].replace(/"/g, "").trim() : "No explanation available."
+            };
+        }).filter(q => q !== null);
 
-function saveAnswer() {
-    const s = document.querySelector('input[name="opt"]:checked');
-    if (s) { answers[currentQuestion] = s.value; updatePalette(); }
-}
+        if(questions.length > 0) start();
+        else alert("CSV Format Error! Ensure 6 or 7 columns.");
+    }
 
-function nextQuestion() { if(currentQuestion < quizData.length-1) { currentQuestion++; showQuestion(); } }
-function prevQuestion() { if(currentQuestion > 0) { currentQuestion--; showQuestion(); } }
-function markReview() { review[currentQuestion] = !review[currentQuestion]; updatePalette(); }
-function gotoQ(i) { currentQuestion = i; showQuestion(); }
+    function start() {
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('quiz').style.display = 'block';
+        let time = questions.length * 60;
+        render();
+        timer = setInterval(() => {
+            time--;
+            let m = Math.floor(time/60), s = time%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0'+s:s}`;
+            if(time <= 0) endQuiz();
+        }, 1000);
+    }
 
-function updatePalette() {
-    quizData.forEach((_, i) => {
-        const b = document.getElementById(`box${i}`);
-        b.className = `qbox ${answers[i]?'answered':''} ${review[i]?'review':''} ${i===currentQuestion?'current':''}`;
-    });
-}
+    function render() {
+        const q = questions[current];
+        document.getElementById('palette').innerHTML = questions.map((_, i) => 
+            `<div class="p-item ${i===current?'active':''} ${userAns[i]?'done':''}" onclick="current=${i};render();">${i+1}</div>`
+        ).join('');
+        
+        document.getElementById('qText').innerText = `${current+1}. ${q.q}`;
+        document.getElementById('optionsArea').innerHTML = q.o.map(opt => `
+            <label class="option">
+                <input type="radio" name="choice" value="${opt}" ${userAns[current]===opt?'checked':''} onchange="save('${opt}')"> ${opt}
+            </label>
+        `).join('');
+    }
 
-function submitQuiz() {
-    clearInterval(timer);
-    document.getElementById("quizArea").style.display = "none";
-    let score = 0;
-    quizData.forEach((q, i) => { if(answers[i] === q.a) score++; });
-    
-    let html = `
-        <h2>Exam Summary</h2>
-        <div class="summary">
-            <div class="card">Total<br>${quizData.length}</div>
-            <div class="card">Correct<br>${score}</div>
-            <div class="card">Wrong<br>${answers.filter(a=>a).length - score}</div>
-        </div>
-        <h3>Review Questions</h3>
-        <div class="palette" style="margin-bottom:20px;">
-            ${quizData.map((q, i) => `<div class="qbox ${answers[i]===q.a?'answered':'wrong'}" onclick="showExpl(${i})">${i+1}</div>`).join('')}
-        </div>
-        <div id="explBox" class="explanation">Click a number above to see the explanation.</div>
-        <button onclick="location.reload()" style="width:100%; margin-top:20px;">Restart Quiz</button>
-    `;
-    document.getElementById("result").innerHTML = html;
-}
+    function save(val) { userAns[current] = val; render(); }
+    function changeQ(dir) { if(current+dir >= 0 && current+dir < questions.length) { current += dir; render(); } }
 
-function showExpl(i) {
-    const q = quizData[i];
-    document.getElementById("explBox").innerHTML = `
-        <strong>Question ${i+1}</strong><br>${q.q}<br><br>
-        <strong>Correct Answer:</strong> <span class="correct-option">${q.a}</span><br>
-        <strong>Explanation:</strong> ${q.e}
-    `;
-}
+    function endQuiz() {
+        clearInterval(timer);
+        let score = 0;
+        questions.forEach((q, i) => { if(userAns[i] === q.a) score++; });
+        document.getElementById('quiz').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('scoreDisplay').innerText = `${score} / ${questions.length}`;
+        
+        // Final Review
+        document.getElementById('reviewArea').innerHTML = questions.map((q, i) => `
+            <div class="expl-box">
+                <b>Q${i+1}: ${q.q}</b><br>
+                <span style="color:${userAns[i]===q.a?'green':'red'}">Your Answer: ${userAns[i] || 'Skipped'}</span><br>
+                <span style="color:green">Correct: ${q.a}</span><br>
+                <small><i>${q.e}</i></small>
+            </div>
+        `).join('');
+    }
 </script>
 </body>
 </html>
