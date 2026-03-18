@@ -1,15 +1,18 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz App</title>
+<title>Quiz CSV App</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 
-*{box-sizing:border-box;}
+*{
+box-sizing:border-box;
+}
 
 body{
 font-family:'Poppins',sans-serif;
@@ -24,9 +27,17 @@ max-width:1100px;
 margin:auto;
 padding:20px;
 border-radius:10px;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+input[type=file]{
+font-size:16px;
+padding:8px;
+margin-bottom:10px;
 }
 
 .timer{
+font-size:18px;
 color:red;
 font-weight:bold;
 margin-bottom:10px;
@@ -56,8 +67,14 @@ border-radius:5px;
 cursor:pointer;
 }
 
-.answered{background:#4CAF50;color:white;}
-.current{border:3px solid black;}
+.answered{
+background:#4CAF50;
+color:white;
+}
+
+.current{
+border:3px solid black;
+}
 
 .question-area{
 flex:1;
@@ -92,6 +109,10 @@ border-radius:5px;
 cursor:pointer;
 }
 
+button:hover{
+background:#0d47a1;
+}
+
 @media(max-width:700px){
 
 .layout{
@@ -114,7 +135,10 @@ justify-content:center;
 
 <h2>Upload Quiz CSV</h2>
 
-<input type="file" id="csvFile" accept=".csv">
+<input type="file" id="csvFile">
+
+<br>
+
 <button onclick="loadQuiz()">Start Quiz</button>
 
 <div id="quizArea" style="display:none">
@@ -132,9 +156,11 @@ justify-content:center;
 <div id="options"></div>
 
 <div class="buttons">
+
 <button onclick="prevQuestion()">Previous</button>
 <button onclick="nextQuestion()">Next</button>
 <button onclick="submitQuiz()">Submit</button>
+
 </div>
 
 </div>
@@ -158,11 +184,12 @@ let timeLeft=0
 function loadQuiz(){
 
 quizData=[]
+answers=[]
 
 let file=document.getElementById("csvFile").files[0]
 
 if(!file){
-alert("Please upload CSV")
+alert("Please upload CSV file")
 return
 }
 
@@ -265,7 +292,7 @@ let checked=answers[currentQuestion]===opt?"checked":""
 
 html+=`
 <div class="option" onclick="selectOption('${opt}')">
-<input type="radio" name="opt" value="${opt}" ${checked}>
+<input type="radio" name="opt" ${checked}>
 ${opt}
 </div>
 `
@@ -347,11 +374,20 @@ if(answers[i]===q.a) correct++
 
 let wrong=(answers.filter(a=>a).length)-correct
 
+let percent=Math.round((correct/quizData.length)*100)
+
 let html=`
+
 <h2>Result</h2>
+
 <p>Total Questions: ${quizData.length}</p>
+
 <p>Correct: ${correct}</p>
+
 <p>Wrong: ${wrong}</p>
+
+<p>Score: ${percent}%</p>
+
 `
 
 document.getElementById("result").innerHTML=html
@@ -362,3 +398,4 @@ document.getElementById("result").innerHTML=html
 
 </body>
 </html>
+```
