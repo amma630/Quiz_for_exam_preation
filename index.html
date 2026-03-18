@@ -4,9 +4,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GATE Practice Quiz</title>
+<title>CSV Quiz App</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- CSV Parser -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 
@@ -19,65 +22,11 @@ padding:20px;
 
 .container{
 background:white;
-max-width:1100px;
+max-width:900px;
 margin:auto;
 padding:25px;
-border-radius:12px;
-box-shadow:0 10px 25px rgba(0,0,0,0.3);
-}
-
-.layout{
-display:flex;
-gap:20px;
-flex-wrap:wrap;
-}
-
-.palette{
-width:220px;
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-}
-
-.qbox{
-width:40px;
-height:40px;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#ccc;
-border-radius:6px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.answered{background:#4CAF50;color:white;}
-.review{background:#ff9800;color:white;}
-.current{border:3px solid black;}
-
-.question-area{
-flex:1;
-min-width:250px;
-}
-
-.option{
-display:block;
-background:#f3f3f3;
-padding:12px;
-margin:10px 0;
-border-radius:6px;
-cursor:pointer;
-}
-
-.option:hover{
-background:#e0e0e0;
-}
-
-.buttons{
-margin-top:10px;
-display:flex;
-flex-wrap:wrap;
-gap:10px;
+border-radius:10px;
+box-shadow:0 10px 20px rgba(0,0,0,0.2);
 }
 
 button{
@@ -87,27 +36,45 @@ border:none;
 padding:10px 16px;
 border-radius:6px;
 cursor:pointer;
+margin-top:10px;
+}
+
+.option{
+display:block;
+background:#f1f1f1;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+cursor:pointer;
 }
 
 .timer{
-font-size:18px;
 color:red;
 font-weight:bold;
 margin-bottom:10px;
 }
 
-@media(max-width:768px){
-
-.layout{
-flex-direction:column;
-}
-
 .palette{
-width:100%;
-justify-content:center;
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+margin-bottom:15px;
 }
 
+.qbox{
+width:35px;
+height:35px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#ccc;
+border-radius:5px;
+cursor:pointer;
+font-size:14px;
 }
+
+.answered{background:#4CAF50;color:white;}
+.current{border:3px solid black;}
 
 </style>
 </head>
@@ -119,34 +86,22 @@ justify-content:center;
 <h2>Upload Quiz CSV</h2>
 
 <input type="file" id="csvFile">
+<br>
 <button onclick="loadQuiz()">Start Quiz</button>
 
 <div id="quizArea" style="display:none">
 
 <div class="timer" id="timer"></div>
 
-<div class="layout">
-
 <div class="palette" id="palette"></div>
-
-<div class="question-area">
 
 <h3 id="question"></h3>
 
 <div id="options"></div>
 
-<div class="buttons">
-
-<button onclick="prevQuestion()">Previous</button>
-<button onclick="markReview()">Mark Review</button>
-<button onclick="nextQuestion()">Next</button>
+<button onclick="prevQ()">Previous</button>
+<button onclick="nextQ()">Next</button>
 <button onclick="submitQuiz()">Submit</button>
-
-</div>
-
-</div>
-
-</div>
 
 </div>
 
@@ -157,50 +112,41 @@ justify-content:center;
 <script>
 
 let quizData=[]
-let currentQuestion=0
 let answers=[]
-let review=[]
+let current=0
 let timer
-let timeLeft=0
+let timeLeft
 
 function loadQuiz(){
-
-quizData=[]
-answers=[]
-review=[]
 
 let file=document.getElementById("csvFile").files[0]
 
 if(!file){
-alert("Upload CSV file")
+alert("Please upload CSV file")
 return
 }
 
-let reader=new FileReader()
+Papa.parse(file,{
+header:true,
+skipEmptyLines:true,
 
-reader.onload=function(e){
+complete:function(results){
 
-let lines=e.target.result.trim().split(/\r?\n/)
+quizData=[]
 
-for(let i=1;i<lines.length;i++){
-
-let d=lines[i].split(",")
-
-if(d.length>=7){
+results.data.forEach(row=>{
 
 quizData.push({
-q:d[0],
-o:[d[1],d[2],d[3],d[4]],
-a:d[5].trim(),
-exp:d[6]
+q:row.Question,
+o:[row.Option1,row.Option2,row.Option3,row.Option4],
+a:row.Answer,
+exp:row.Explanation
 })
 
-}
-
-}
+})
 
 if(quizData.length==0){
-alert("CSV not parsed correctly")
+alert("CSV format incorrect")
 return
 }
 
@@ -208,7 +154,7 @@ startQuiz()
 
 }
 
-reader.readAsText(file)
+})
 
 }
 
@@ -262,15 +208,15 @@ document.getElementById("palette").innerHTML=html
 
 function showQuestion(){
 
-let q=quizData[currentQuestion]
+let q=quizData[current]
 
-document.getElementById("question").innerHTML="Q"+(currentQuestion+1)+": "+q.q
+document.getElementById("question").innerHTML="Q"+(current+1)+": "+q.q
 
 let html=""
 
 q.o.forEach(opt=>{
 
-let checked=answers[currentQuestion]==opt?"checked":""
+let checked=answers[current]==opt?"checked":""
 
 html+=`
 <label class="option">
@@ -291,45 +237,36 @@ function saveAnswer(){
 
 let s=document.querySelector('input[name="opt"]:checked')
 
-if(s){
-answers[currentQuestion]=s.value
-}
+if(s) answers[current]=s.value
 
 }
 
-function nextQuestion(){
+function nextQ(){
 
 saveAnswer()
 
-if(currentQuestion<quizData.length-1){
-currentQuestion++
+if(current<quizData.length-1){
+current++
 showQuestion()
 }
 
 }
 
-function prevQuestion(){
+function prevQ(){
 
 saveAnswer()
 
-if(currentQuestion>0){
-currentQuestion--
+if(current>0){
+current--
 showQuestion()
 }
-
-}
-
-function markReview(){
-
-review[currentQuestion]=true
-updatePalette()
 
 }
 
 function gotoQ(i){
 
 saveAnswer()
-currentQuestion=i
+current=i
 showQuestion()
 
 }
@@ -340,13 +277,11 @@ for(let i=0;i<quizData.length;i++){
 
 let b=document.getElementById("box"+i)
 
-b.classList.remove("answered","review","current")
+b.classList.remove("answered","current")
 
 if(answers[i]) b.classList.add("answered")
 
-if(review[i]) b.classList.add("review")
-
-if(i===currentQuestion) b.classList.add("current")
+if(i==current) b.classList.add("current")
 
 }
 
@@ -367,18 +302,18 @@ document.getElementById("quizArea").style.display="none"
 let correct=0
 
 quizData.forEach((q,i)=>{
-if(answers[i]===q.a) correct++
+if(answers[i]==q.a) correct++
 })
 
 let html="<h2>Result</h2>"
-html+="Correct: "+correct+" / "+quizData.length+"<br><br>"
+html+="Score: "+correct+" / "+quizData.length+"<br><br>"
 
 quizData.forEach((q,i)=>{
 
 html+="<hr>"
-html+="<b>Q"+(i+1)+": "+q.q+"</b><br>"
+html+="<b>"+q.q+"</b><br>"
 html+="Your Answer: "+(answers[i]||"Not Answered")+"<br>"
-html+="Correct Answer: "+q.a+"<br>"
+html+="Correct: "+q.a+"<br>"
 html+="Explanation: "+q.exp+"<br>"
 
 })
