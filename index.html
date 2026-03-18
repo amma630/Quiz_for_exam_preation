@@ -3,15 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GATE Practice Quiz</title>
+<title>Quiz App</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 
-*{
-box-sizing:border-box;
-}
+*{box-sizing:border-box;}
 
 body{
 font-family:'Poppins',sans-serif;
@@ -22,16 +20,13 @@ padding:10px;
 
 .container{
 background:white;
-width:100%;
 max-width:1100px;
 margin:auto;
 padding:20px;
 border-radius:10px;
-box-shadow:0 10px 25px rgba(0,0,0,0.3);
 }
 
 .timer{
-font-size:18px;
 color:red;
 font-weight:bold;
 margin-bottom:10px;
@@ -51,23 +46,18 @@ gap:6px;
 }
 
 .qbox{
-width:38px;
-height:38px;
+width:36px;
+height:36px;
+background:#ccc;
 display:flex;
 align-items:center;
 justify-content:center;
-background:#ccc;
-border-radius:6px;
+border-radius:5px;
 cursor:pointer;
-font-size:14px;
 }
 
 .answered{background:#4CAF50;color:white;}
-.review{background:#ff9800;color:white;}
 .current{border:3px solid black;}
-
-.correct{background:#4CAF50;color:white;}
-.wrong{background:#e53935;color:white;}
 
 .question-area{
 flex:1;
@@ -75,7 +65,6 @@ min-width:250px;
 }
 
 .option{
-display:block;
 background:#f3f3f3;
 padding:12px;
 margin:8px 0;
@@ -95,77 +84,12 @@ gap:10px;
 }
 
 button{
+padding:10px 15px;
+border:none;
 background:#1976d2;
 color:white;
-border:none;
-padding:10px 14px;
-border-radius:6px;
+border-radius:5px;
 cursor:pointer;
-font-size:14px;
-}
-
-button:hover{
-background:#0d47a1;
-}
-
-.summary{
-display:flex;
-flex-wrap:wrap;
-gap:10px;
-margin-top:15px;
-}
-
-.card{
-background:#f4f4f4;
-padding:15px;
-border-radius:8px;
-flex:1;
-text-align:center;
-font-weight:bold;
-min-width:120px;
-}
-
-.progress-container{
-width:100%;
-background:#ddd;
-height:25px;
-border-radius:12px;
-margin-top:15px;
-overflow:hidden;
-}
-
-.progress-bar{
-height:100%;
-background:linear-gradient(90deg,#4CAF50,#00c853);
-color:white;
-text-align:center;
-line-height:25px;
-font-weight:bold;
-}
-
-.review-section{
-display:flex;
-flex-wrap:wrap;
-gap:20px;
-margin-top:25px;
-}
-
-.explanation{
-flex:1;
-background:#f7f7f7;
-padding:20px;
-border-radius:10px;
-min-width:250px;
-}
-
-.correct-option{
-color:green;
-font-weight:bold;
-}
-
-.wrong-option{
-color:red;
-font-weight:bold;
 }
 
 @media(max-width:700px){
@@ -177,11 +101,6 @@ flex-direction:column;
 .palette{
 width:100%;
 justify-content:center;
-}
-
-.qbox{
-width:34px;
-height:34px;
 }
 
 }
@@ -214,7 +133,6 @@ height:34px;
 
 <div class="buttons">
 <button onclick="prevQuestion()">Previous</button>
-<button onclick="markReview()">Mark Review</button>
 <button onclick="nextQuestion()">Next</button>
 <button onclick="submitQuiz()">Submit</button>
 </div>
@@ -234,7 +152,6 @@ height:34px;
 let quizData=[]
 let currentQuestion=0
 let answers=[]
-let review=[]
 let timer
 let timeLeft=0
 
@@ -245,7 +162,7 @@ quizData=[]
 let file=document.getElementById("csvFile").files[0]
 
 if(!file){
-alert("Upload CSV file")
+alert("Please upload CSV")
 return
 }
 
@@ -271,7 +188,7 @@ a:d[5].trim()
 
 }
 
-if(quizData.length==0){
+if(quizData.length===0){
 alert("CSV format incorrect")
 return
 }
@@ -325,7 +242,9 @@ function createPalette(){
 let html=""
 
 for(let i=0;i<quizData.length;i++){
+
 html+=`<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i+1}</div>`
+
 }
 
 document.getElementById("palette").innerHTML=html
@@ -342,13 +261,13 @@ let html=""
 
 q.o.forEach(opt=>{
 
-let checked=answers[currentQuestion]==opt?"checked":""
+let checked=answers[currentQuestion]===opt?"checked":""
 
 html+=`
-<label class="option">
-<input type="radio" name="opt" value="${opt}" ${checked} onchange="saveAnswer()">
+<div class="option" onclick="selectOption('${opt}')">
+<input type="radio" name="opt" value="${opt}" ${checked}>
 ${opt}
-</label>
+</div>
 `
 
 })
@@ -359,13 +278,11 @@ updatePalette()
 
 }
 
-function saveAnswer(){
+function selectOption(opt){
 
-let s=document.querySelector('input[name="opt"]:checked')
+answers[currentQuestion]=opt
 
-if(s){
-answers[currentQuestion]=s.value
-}
+showQuestion()
 
 }
 
@@ -387,13 +304,6 @@ showQuestion()
 
 }
 
-function markReview(){
-
-review[currentQuestion]=true
-updatePalette()
-
-}
-
 function gotoQ(i){
 
 currentQuestion=i
@@ -407,11 +317,9 @@ for(let i=0;i<quizData.length;i++){
 
 let b=document.getElementById("box"+i)
 
-b.classList.remove("answered","review","current")
+b.classList.remove("answered","current")
 
 if(answers[i]) b.classList.add("answered")
-
-if(review[i]) b.classList.add("review")
 
 if(i===currentQuestion) b.classList.add("current")
 
@@ -422,6 +330,7 @@ if(i===currentQuestion) b.classList.add("current")
 function submitQuiz(){
 
 clearInterval(timer)
+
 showResult()
 
 }
@@ -437,24 +346,12 @@ if(answers[i]===q.a) correct++
 })
 
 let wrong=(answers.filter(a=>a).length)-correct
-let percent=Math.round((correct/quizData.length)*100)
 
 let html=`
-
-<h2>Exam Summary</h2>
-
-<div class="summary">
-
-<div class="card">Total<br>${quizData.length}</div>
-<div class="card">Correct<br>${correct}</div>
-<div class="card">Wrong<br>${wrong}</div>
-
-</div>
-
-<div class="progress-container">
-<div class="progress-bar" style="width:${percent}%">${percent}%</div>
-</div>
-
+<h2>Result</h2>
+<p>Total Questions: ${quizData.length}</p>
+<p>Correct: ${correct}</p>
+<p>Wrong: ${wrong}</p>
 `
 
 document.getElementById("result").innerHTML=html
