@@ -2,139 +2,216 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GATE Practice Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GATE Mobile Quiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1976d2; --success: #4CAF50; --error: #e53935; --warning: #ff9800; }
-        body { font-family: 'Poppins', sans-serif; background: linear-gradient(120deg, #1f4037, #99f2c8); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { background: white; width: 100%; max-width: 850px; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); box-sizing: border-box; }
-        .timer { font-size: 20px; color: red; font-weight: bold; text-align: right; margin-bottom: 15px; }
-        .layout { display: flex; flex-direction: column; gap: 20px; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #1f4037;
+            background: linear-gradient(120deg, #1f4037, #99f2c8);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        /* FIX 2: Layout stacks vertically on mobile so nothing is "cut off" */
+        .layout { display: flex; flex-direction: column; gap: 15px; }
         @media (min-width: 768px) { .layout { flex-direction: row-reverse; } .palette { width: 220px; } }
-        .palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; background: #f9f9f9; padding: 10px; border-radius: 8px; max-height: 300px; overflow-y: auto; }
-        .qbox { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; background: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .answered { background: var(--success) !important; color: white; }
-        .review { background: var(--warning) !important; color: white; }
-        .current { border: 3px solid #000; box-shadow: 0 0 8px rgba(0,0,0,0.2); }
-        .correct { background: var(--success); color: white; }
-        .wrong { background: var(--error); color: white; }
-        .question-area { flex: 1; }
-        .option { display: block; background: #f3f3f3; padding: 15px; margin: 10px 0; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .option:active { background: #e0e0e0; }
-        .buttons { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-submit { background: #333; grid-column: span 2; margin-top: 10px; }
-        .card { background: #f4f4f4; padding: 10px; border-radius: 8px; text-align: center; flex: 1; font-size: 14px; }
-        .summary { display: flex; gap: 10px; margin-bottom: 20px; }
-        .explanation { margin-top: 15px; background: #f7f7f7; padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); }
+
+        .timer { font-size: 20px; color: #e53935; font-weight: bold; text-align: center; margin-bottom: 10px; }
+
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 5px;
+            background: #eee;
+            padding: 10px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .qbox {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #bbb;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .answered { background: #4CAF50 !important; color: white; }
+        .review { background: #ff9800 !important; color: white; }
+        .current { border: 2px solid black; transform: scale(1.1); }
+
+        /* FIX 3: Large tap targets for fingers on mobile screens */
+        .option {
+            display: block;
+            background: #f1f1f1;
+            padding: 16px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #1976d2;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .full-btn { grid-column: span 2; background: #333; }
+        
+        #result { margin-top: 20px; }
+        .card-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .card { flex: 1; background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <div id="uploadArea">
-        <h2>GATE Quiz Upload</h2>
-        <input type="file" id="csvFile" accept=".csv" style="width:100%; margin-bottom:20px;">
-        <button onclick="loadQuiz()" style="width:100%">Start Quiz</button>
+    <div id="setup">
+        <h2>GATE Exam Practice</h2>
+        <p>Select CSV file from your phone storage:</p>
+        <input type="file" id="csvFile" accept=".csv" style="margin-bottom:20px; width:100%;">
+        <button onclick="initQuiz()" style="width:100%">Start Quiz Now</button>
     </div>
 
-    <div id="quizArea" style="display:none">
-        <div class="timer" id="timer">00:00</div>
+    <div id="quiz" style="display:none">
+        <div class="timer" id="timeDisp">00:00</div>
         <div class="layout">
             <div class="palette" id="palette"></div>
-            <div class="question-area">
-                <h3 id="question"></h3>
-                <div id="options"></div>
+            <div class="main-q">
+                <h3 id="qText"></h3>
+                <div id="optContainer"></div>
                 <div class="buttons">
-                    <button onclick="prevQuestion()">Previous</button>
-                    <button onclick="nextQuestion()">Next</button>
-                    <button onclick="markReview()" style="background:var(--warning)">Mark Review</button>
-                    <button onclick="submitQuiz()" class="btn-submit">Finish & Submit</button>
+                    <button onclick="changeQ(-1)">Previous</button>
+                    <button onclick="changeQ(1)">Next</button>
+                    <button onclick="toggleReview()" style="background:#ff9800">Review</button>
+                    <button onclick="endQuiz()" class="full-btn">Submit Results</button>
                 </div>
             </div>
         </div>
     </div>
-    <div id="result"></div>
+
+    <div id="report"></div>
 </div>
 
 <script>
-    let quizData = [], currentQuestion = 0, answers = [], review = [], timer, timeLeft = 0;
+let data = [], cur = 0, userAns = [], isReview = [], clock, sec = 0;
 
-    function loadQuiz() {
-        const file = document.getElementById("csvFile").files[0];
-        if (!file) return alert("Upload CSV");
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const lines = e.target.result.split(/\r?\n/);
-            lines.slice(1).forEach(line => {
-                const d = line.split(",");
-                if (d.length >= 6) quizData.push({ q: d[0], o: [d[1], d[2], d[3], d[4]], a: d[5].trim() });
-            });
-            if (quizData.length) startQuiz();
-        };
-        reader.readAsText(file);
-    }
+function initQuiz() {
+    const file = document.getElementById('csvFile').files[0];
+    if (!file) return alert("Select a CSV file");
 
-    function startQuiz() {
-        document.getElementById("uploadArea").style.display = "none";
-        document.getElementById("quizArea").style.display = "block";
-        timeLeft = quizData.length * 60;
-        createPalette();
-        showQuestion();
-        timer = setInterval(() => {
-            timeLeft--;
-            const m = Math.floor(timeLeft/60), s = timeLeft%60;
-            document.getElementById("timer").innerText = `Time: ${m}:${s<10?'0'+s:s}`;
-            if(timeLeft<=0) submitQuiz();
-        }, 1000);
-    }
-
-    function createPalette() {
-        document.getElementById("palette").innerHTML = quizData.map((_, i) => 
-            `<div class="qbox" id="box${i}" onclick="gotoQ(${i})">${i+1}</div>`).join('');
-    }
-
-    function showQuestion() {
-        const q = quizData[currentQuestion];
-        document.getElementById("question").innerText = `Q${currentQuestion+1}: ${q.q}`;
-        document.getElementById("options").innerHTML = q.o.map(opt => `
-            <label class="option">
-                <input type="radio" name="opt" value="${opt}" ${answers[currentQuestion]===opt?'checked':''} onchange="saveAnswer()"> ${opt}
-            </label>`).join('');
-        updatePalette();
-    }
-
-    function saveAnswer() {
-        const s = document.querySelector('input[name="opt"]:checked');
-        if (s) { answers[currentQuestion] = s.value; updatePalette(); }
-    }
-
-    function nextQuestion() { if(currentQuestion < quizData.length-1) { currentQuestion++; showQuestion(); } }
-    function prevQuestion() { if(currentQuestion > 0) { currentQuestion--; showQuestion(); } }
-    function markReview() { review[currentQuestion] = !review[currentQuestion]; updatePalette(); }
-    function gotoQ(i) { currentQuestion = i; showQuestion(); }
-
-    function updatePalette() {
-        quizData.forEach((_, i) => {
-            const b = document.getElementById(`box${i}`);
-            b.className = `qbox ${answers[i]?'answered':''} ${review[i]?'review':''} ${i===currentQuestion?'current':''}`;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        // Triple-checked regex for Android/Samsung file line breaks
+        const rows = e.target.result.split(/\r?\n/);
+        data = rows.slice(1).filter(r => r.split(',').length >= 6).map(r => {
+            const cols = r.split(',');
+            return { q: cols[0], o: [cols[1], cols[2], cols[3], cols[4]], a: cols[5].trim() };
         });
-    }
 
-    function submitQuiz() {
-        clearInterval(timer);
-        document.getElementById("quizArea").style.display = "none";
-        let score = 0;
-        quizData.forEach((q, i) => { if(answers[i] === q.a) score++; });
-        document.getElementById("result").innerHTML = `
-            <h2>Result: ${score}/${quizData.length}</h2>
-            <div class="summary">
-                <div class="card">Correct: ${score}</div>
-                <div class="card">Wrong: ${answers.filter(a=>a).length - score}</div>
-            </div>
-            <button onclick="location.reload()" style="width:100%">Restart</button>
-        `;
-    }
+        if (data.length > 0) {
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            sec = data.length * 60;
+            renderPalette();
+            renderQ();
+            clock = setInterval(tick, 1000);
+        } else {
+            alert("CSV format error. Ensure 6 columns (Question, Opt1, Opt2, Opt3, Opt4, Answer)");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function tick() {
+    sec--;
+    let m = Math.floor(sec/60), s = sec%60;
+    document.getElementById('timeDisp').innerText = `${m}:${s<10?'0'+s:s}`;
+    if (sec <= 0) endQuiz();
+}
+
+function renderPalette() {
+    document.getElementById('palette').innerHTML = data.map((_, i) => 
+        `<div class="qbox" id="p${i}" onclick="jump(${i})">${i+1}</div>`
+    ).join('');
+}
+
+function renderQ() {
+    const q = data[cur];
+    document.getElementById('qText').innerText = `Question ${cur+1}: ${q.q}`;
+    document.getElementById('optContainer').innerHTML = q.o.map(opt => `
+        <label class="option">
+            <input type="radio" name="answer" value="${opt}" ${userAns[cur]===opt?'checked':''} onchange="save()"> ${opt}
+        </label>
+    `).join('');
+    
+    // Update Palette UI
+    data.forEach((_, i) => {
+        const el = document.getElementById(`p${i}`);
+        el.className = `qbox ${userAns[i]?'answered':''} ${isReview[i]?'review':''} ${i===cur?'current':''}`;
+    });
+}
+
+function save() {
+    const sel = document.querySelector('input[name="answer"]:checked');
+    if (sel) userAns[cur] = sel.value;
+    renderQ();
+}
+
+function jump(i) { cur = i; renderQ(); }
+function changeQ(dir) { 
+    if (cur + dir >= 0 && cur + dir < data.length) { cur += dir; renderQ(); } 
+}
+function toggleReview() { isReview[cur] = !isReview[cur]; renderQ(); }
+
+function endQuiz() {
+    clearInterval(clock);
+    document.getElementById('quiz').style.display = 'none';
+    let score = 0;
+    data.forEach((q, i) => { if(userAns[i] === q.a) score++; });
+    
+    document.getElementById('report').innerHTML = `
+        <h2>Exam Finished</h2>
+        <div class="card-row">
+            <div class="card"><b>Total</b><br>${data.length}</div>
+            <div class="card"><b>Score</b><br>${score}</div>
+            <div class="card"><b>Accuracy</b><br>${Math.round((score/data.length)*100)}%</div>
+        </div>
+        <button onclick="location.reload()" style="width:100%">Try Again</button>
+    `;
+}
 </script>
 </body>
 </html>
